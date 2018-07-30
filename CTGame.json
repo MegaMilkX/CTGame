@@ -1,0 +1,7 @@
+{
+    "build_path":"build",
+    "project_name":"game",
+    "source_path":"src",
+    "default_state":"Gameplay",
+    "resources":"resources.json"
+}
