@@ -1,0 +1,102 @@
+{
+    "nodes":[
+        {
+            "name":"General",
+            "nodes":[
+                {
+                    "name":"Player",
+                    "nodes":[
+                        { "name":"Mesh", "type":"Model", "source":"resources\\model\\character.fbx" },
+                        { "name":"Skeleton", "type":"Skeleton", "source":"resources\\model\\character.fbx" },
+                        { "name":"Animation", "type":"Animation", "source":"resources\\model\\character.fbx" }
+                    ]                    
+                },
+                {
+                    "name":"Model",
+                    "nodes":[
+                        { "name":"Beta", "type":"Model", "source":"resources\\model\\Beta.fbx" },
+                        { "name":"brick", "type":"Model", "source":"resources\\model\\brick.fbx" },
+                        { "name":"chara6", "type":"Model", "source":"resources\\model\\chara6.fbx" },
+                        { "name":"character2", "type":"Model", "source":"resources\\model\\character2.FBX" },
+                        { "name":"character4", "type":"Model", "source":"resources\\model\\character4.fbx" },
+                        { "name":"cube", "type":"Model", "source":"resources\\model\\cube.FBX" },
+                        { "name":"env", "type":"Model", "source":"resources\\model\\env.fbx" },
+                        { "name":"env2", "type":"Model", "source":"resources\\model\\env2.fbx" },
+                        { "name":"env3", "type":"Model", "source":"resources\\model\\env3.fbx" },
+                        { "name":"eve_j_gonzales", "type":"Model", "source":"resources\\model\\eve_j_gonzales.fbx" },
+                        { "name":"frame15", "type":"Model", "source":"resources\\model\\frame15.FBX" },
+                        { "name":"Jog Forward", "type":"Model", "source":"resources\\model\\Jog Forward.fbx" },
+                        { "name":"miku", "type":"Model", "source":"resources\\model\\miku.FBX" },
+                        { "name":"miku2", "type":"Model", "source":"resources\\model\\miku2.fbx" },
+                        { "name":"naga", "type":"Model", "source":"resources\\model\\naga.fbx" },
+                        { "name":"skin", "type":"Model", "source":"resources\\model\\skin.FBX" },
+                        { "name":"sphere", "type":"Model", "source":"resources\\model\\sphere.FBX" },
+                        { "name":"stylized", "type":"Model", "source":"resources\\model\\stylized.fbx" },
+                        { "name":"sypha", "type":"Model", "source":"resources\\model\\sypha.fbx" },
+                        { "name":"teapot", "type":"Model", "source":"resources\\model\\teapot.FBX" }
+                    ]
+                },
+                {
+                    "name":"Audio",
+                    "nodes":[
+                        { "name":"BadApple", "type":"SoundClip", "source":"resources\\audio\\test.ogg" },
+                        { "name":"amb01", "type":"SoundClip", "source":"resources\\audio\\amb01.ogg" }
+                    ]
+                },
+                { 
+                    "name":"Font",
+                    "nodes":[
+                        { "name":"Calibri", "type":"Font", "source":"resources\\fonts\\calibri.ttf" },
+                        { "name":"Cup and Talon", "type":"Font", "source":"resources\\fonts\\Cup and Talon.ttf" },
+                        { "name":"FantaisieArtistique", "type":"Font", "source":"resources\\fonts\\FantaisieArtistique.ttf" }
+                    ] 
+                },
+                {
+                    "name":"Texture",
+                    "nodes":[
+                        { "name":"BrickWall", "type":"Texture2D", "source":"resources\\texture\\33_32_14---Brick-Texture_web.jpg" },
+                        { "name":"25544144", "type":"Texture2D", "source":"resources\\texture\\25544144.jpg" },
+                        { "name":"14924224208470", "type":"Texture2D", "source":"resources\\texture\\14924224208470.jpg" },
+                        { "name":"15011503769090", "type":"Texture2D", "source":"resources\\texture\\15011503769090.jpg" },
+                        { "name":"15186917694630", "type":"Texture2D", "source":"resources\\texture\\15186917694630.png" },
+                        { "name":"AngeHalloween_A", "type":"Texture2D", "source":"resources\\texture\\AngeHalloween_A.png" },
+                        { "name":"Grid", "type":"Texture2D", "source":"resources\\texture\\cb6526aa21ce4348b8d251a2366dc53e.jpg" },
+                        { "name":"chara6uv2", "type":"Texture2D", "source":"resources\\texture\\chara6uv2.png" },
+                        { "name":"dirty-old-paper-2", "type":"Texture2D", "source":"resources\\texture\\dirty-old-paper-2.jpg" },
+                        { "name":"galaxy_1_texture_by_anchorwind_net-d9fivxx", "type":"Texture2D", "source":"resources\\texture\\galaxy_1_texture_by_anchorwind_net-d9fivxx.png" },
+                        { "name":"nier_automata-yorha-2b-fighting-(1282)", "type":"Texture2D", "source":"resources\\texture\\nier_automata-yorha-2b-fighting-(1282).jpg" },
+                        { "name":"roomitems_002_body", "type":"Texture2D", "source":"resources\\texture\\roomitems_002_body.png" },
+                        { "name":"roomitems_013_color", "type":"Texture2D", "source":"resources\\texture\\roomitems_013_color.png" },
+                        { "name":"spyro_winter_tundra", "type":"Texture2D", "source":"resources\\texture\\spyro_winter_tundra.png" },
+                        { "name":"Cirno", "type":"Texture2D", "source":"resources\\texture\\V8fBNZhT.png" }
+                    ]
+                },
+                {
+                    "name":"Script",
+                    "nodes":[
+                        { "name":"brick", "type":"Script", "source":"resources\\script\\brick.lua" },
+                        { "name":"camera", "type":"Script", "source":"resources\\script\\camera.lua" },
+                        { "name":"cube", "type":"Script", "source":"resources\\script\\cube.lua" },
+                        { "name":"scene", "type":"Script", "source":"resources\\script\\scene.lua" },
+                        { "name":"sphere", "type":"Script", "source":"resources\\script\\sphere.lua" },
+                        { "name":"sphere2", "type":"Script", "source":"resources\\script\\sphere2.lua" },
+                        { "name":"sphere3", "type":"Script", "source":"resources\\script\\sphere3.lua" },
+                        { "name":"teapot", "type":"Script", "source":"resources\\script\\teapot.lua" }
+                    ]
+                },
+                {
+                    "name":"Material",
+                    "nodes":[                        
+                        { "name":"env", "type":"Material", "source":"resources\\material\\env.json" },
+                        { "name":"mat", "type":"Material", "source":"resources\\material\\mat.json" },
+                        { "name":"matbrick", "type":"Material", "source":"resources\\material\\matbrick.json" },
+                        { "name":"material", "type":"Material", "source":"resources\\material\\material.json" },
+                        { "name":"material_skin", "type":"Material", "source":"resources\\material\\material_skin.json" },
+                        { "name":"material1", "type":"Material", "source":"resources\\material\\material1.json" },
+                        { "name":"material2", "type":"Material", "source":"resources\\material\\material2.json" }
+                    ]
+                }                
+            ]
+        }
+    ]
+}
