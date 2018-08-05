@@ -1,0 +1,33 @@
+{
+    "Axes":{
+        "MoveX":[
+            { "id":"X360_LX", "Scale":1.0 },
+            { "id":"DS4_LX", "Scale":1.0 },
+            { "id":"D", "Scale":1.0 },
+            { "id":"A", "Scale":-1.0 }
+        ],
+        "MoveY":[
+            { "id":"X360_LY", "Scale":1.0 },
+            { "id":"DS4_LY", "Scale":-1.0 },
+            { "id":"W", "Scale":1.0 },
+            { "id":"S", "Scale":-1.0 }
+        ],
+        "MoveCamX":[
+            { "id":"MOUSE_X", "Scale":1.0 },
+            { "id":"X360_RX", "Scale":1.0 },
+            { "id":"DS4_RX", "Scale":1.0 }
+        ],
+        "MoveCamY":[
+            { "id":"MOUSE_Y", "Scale":1.0 },
+            { "id":"X360_RY", "Scale":1.0 },
+            { "id":"DS4_RY", "Scale":1.0 }
+        ]
+    },
+    "Actions":{
+        "Use":[
+            { "id":"KB_E" },
+            { "id":"X360_A" },
+            { "id":"DS4_CROSS" }
+        ]
+    }
+}
