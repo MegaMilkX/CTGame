@@ -33,7 +33,8 @@
                         { "name":"sphere", "type":"Model", "source":"resources\\model\\sphere.FBX" },
                         { "name":"stylized", "type":"Model", "source":"resources\\model\\stylized.fbx" },
                         { "name":"sypha", "type":"Model", "source":"resources\\model\\sypha.fbx" },
-                        { "name":"teapot", "type":"Model", "source":"resources\\model\\teapot.FBX" }
+                        { "name":"teapot", "type":"Model", "source":"resources\\model\\teapot.FBX" },
+                        { "name":"Room", "type":"Model", "source":"resources\\model\\room.fbx" }
                     ]
                 },
                 {
