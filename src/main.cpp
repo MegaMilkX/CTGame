@@ -1,11 +1,15 @@
-
-
 #include <aurora2/aurora2.h>
-#include "state_test.h"
 
-static SceneObject scene;
+
+#include "world_controller.h"
+
+SceneObject myScene;
 
 void Aurora2Init()
 {
-    GameState::Push<StateTest>();
+    auto gc = myScene.Get<WorldController>();
+
+    GameState::SetScene(&myScene);
+
+    //GameState::Push<StateTest>();
 }

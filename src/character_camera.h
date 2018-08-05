@@ -1,65 +1,38 @@
 #ifndef CHARACTER_CAMERA_H
 #define CHARACTER_CAMERA_H
 
-#include <collision/collider.h>
-#include <transform.h>
-#include <sound_emitter.h>
+#include <scene_object.h>
 #include <camera.h>
+#include <transform.h>
+#include <game_state.h>
 
-class CharacterCamera : public SceneObject::Component
+class CharacterCamera : public Updatable
 {
 public:
-    void SetTarget(SceneObject* so)
-    { target = so->GetComponent<Transform>(); }
-    void SetTarget(SceneObject::Component* com)
-    { target = com->GetComponent<Transform>(); }
+    void OnStart()
+    {
+        c = CreateObject()->Get<Camera>();
+        c->Get<Transform>()->Translate(0, 1.6, 4);
+        GetObject()->Root()->Get<Renderer>()->CurrentCamera(c);
 
-    void MouseMove(int x, int y)
-    {
-        transform->Rotate(-x * 0.005f, 0.0f, 1.0f, 0.0f);
-        transform->Rotate(-y * 0.005f, transform->Right());
+        c->Perspective(1.0f, 16.0f/9.0f, 0.1f, 100.0f);
     }
-    
-    event_dispatcher<eMouseMove> disp_onMouseMove;
-    void Update(float dt)
+
+    void OnUpdate()
     {
-        cam->Perspective(1.4f, (float)Common.frameSize.x / (float)Common.frameSize.y, 0.01f, 1000.0f);
-        
-        while(eMouseMove* e = disp_onMouseMove.poll())
-            MouseMove(e->dx, e->dy);
-        
-        gfxm::vec3 tgt = target->Position();
-        tgt.y += 1.5f;
-        tgt = (tgt - transform->Position()) * (dt * 7.0f);
-        transform->Translate(tgt);
-        
-        Collision::RayHit hit;
-        if(GetObject()->Root()->GetComponent<Collision>()->RayTest(gfxm::ray(transform->Position(), transform->Back() * 1.2f), hit))
-        {
-            cam->GetComponent<Transform>()->Position(0.0f, 0.0f, (hit.position - transform->Position()).length() - 0.1f);
-        }
-        else
-        {
-            cam->GetComponent<Transform>()->Position(0.0f, 0.0f, 1.2f);
-        }
+        if(!target) return;
+
+        c->Get<Transform>()->Position(target->WorldPosition() + gfxm::vec3(0.0f,1.6f,4.0f));
     }
-    
-    void OnInit()
+
+    void SetTarget(Transform* tgt)
     {
-        transform = GetComponent<Transform>();
-        target = GetObject()->Root()->GetComponent<Transform>();
-        
-        cam = GetObject()->CreateObject()->GetComponent<Camera>();
-        cam->Perspective(1.4f, 16.0f/9.0f, 0.01f, 1000.0f);
-        cam->GetComponent<Transform>()->Translate(0.0, 0.0, 1.2f);
-        cam->GetComponent<Transform>()->AttachTo(transform);
-        
-        cam->GetComponent<SoundListener>();
+        target = tgt;
     }
+
 private:
-    Transform* transform;
-    Transform* target;
-    Camera* cam;
+    Camera* c;
+    Transform* target = 0;
 };
 
 #endif

@@ -1,210 +1,51 @@
 #ifndef CHARACTER_H
 #define CHARACTER_H
 
-#include "actor.h"
+#include <scene_object.h>
+#include <skeleton.h>
+#include <animator.h>
+#include <model.h>
 
-class Character : public SceneObject::Component
+#include "character_camera.h"
+
+class Character : public Updatable
 {
 public:
-    void Velocity(const gfxm::vec3& v)
-	{
-		if(v.length() > FLT_EPSILON)
-		{
-			velocity = v;
-			motion->Set("velocity", 10.0);
-		}
-		else if(v.length() <= FLT_EPSILON)
-		{
-			velocity = gfxm::vec3(0.0f, 0.0f, 0.0f);
-			motion->Set("velocity", 0.0);
-		}
-	}
-	
-	gfxm::vec3 Velocity()
-	{
-		return velocity;
-	}
-
-    void Update(float dt)
+    void OnStart()
     {
-        motion->Set("dt", dt);
-		motion->Set("direction", velocity);
-		float dot = gfxm::dot(
-			gfxm::normalize(velocity), 
-			gfxm::normalize(Get<Transform>()->Back())
-		);
-		gfxm::vec3 rotAxis = gfxm::normalize(
-			gfxm::cross(
-				gfxm::normalize(Get<Transform>()->Back()), 
-				gfxm::normalize(velocity)
-			)
-		);
-		#undef max
-		#undef min
-		const float eps = 0.01f;
-    	if(fabs(dot + 1.0f) <= eps)
-		{
-			
-		}
-        rotAngle = acosf(std::max(-1.0f, std::min(dot, 1.0f)));
-		if(rotAxis.y > 0.0f) rotAngle *= -1.0f;
-		motion->Set("angle", rotAngle);
-		motion->Set("angleAbs", fabs(rotAngle));
-
-        angleAbs = fabs(rotAngle);
-		
-		//trans->LookAt(trans->Position() - Velocity(), trans->Forward(), gfxm::vec3(0.0f, 1.0f, 0.0f), 10.0f * dt);
-		animator->Tick(dt);
-        actor->Update(dt);
-        animator->Finalize();
-        
-        //motion->Update();
-		layerMotion1 += dt;
-		Get<Animator>()->ApplyAdd(layerMotion1, 1.0f);
-    }
-
-    void OnInit()
-    {
-        collision = RootGet<Collision>();
-        kinematicObject = Get<KinematicObject>();
-
-        Collider* collider = GetComponent<SphereCollider>();
-        collider->SetOffset(0.0f, 0.6f, 0.0f);
-        
-        GetComponent<Skeleton>()->SetData("General.Player.Skeleton");
-        Model* m = GetComponent<Model>();
+        m = Get<Model>();
         m->mesh.set("General.Player.Mesh");
         m->material.set("General.Material.material2");
-        
-        GetObject()->Name("character");
 
-        asset<Animation>::get("General.Player.Animation")->SetRootMotionSource("Root");
-        asset<Animation>::get("General.Player.Animation")->operator[]("Turn180")->Looping(false);
-        animator = Get<Animator>();
-        animator->Set("General.Player.Animation");
+        m->Get<Skeleton>()->SetData("General.Player.Skeleton");
 
-        layerMotion1 = asset<Animation>::get("General.Player.Animation")->operator[]("LayerMotion01")->GetCursor();
-        
-        motion = Get<MotionScript>();
-        
-        motion->Set("velocity", 0.0f);
-        motion->Set("gravity", 9.8f);
+        anim = m->Get<Animator>();
+        anim->Set("General.Player.Animation");
+        anim->Play("Run");
 
-        actor = Get<Actor>();
-        actor->AddState(
-            "Idle",
-            {
-                [this]()->bool{
-                    return grounded && velocity.length() <= FLT_EPSILON;
-                },
-                [this](){
-                    grav_velo = 0.0f;
-                    motion->Blend("Idle", 0.1f);
-                },
-                [this](){
-                    _checkForGround();
-                },
-                { "Fall", "Walk" }
-            }
-        );
-        actor->AddState(
-            "Walk",
-            {
-                [this]()->bool{
-                    return grounded && velocity.length() > FLT_EPSILON;
-                },
-                [this](){
-                    grav_velo = 0.0f;
-                    motion->Blend("Run", 0.1f);
-                    LayerTurnLCur = Get<Animator>()->GetAnimCursor("LayerTurnL");
-                    LayerTurnRCur = Get<Animator>()->GetAnimCursor("LayerTurnR");
-                },
-                [this](){
-                    _checkForGround();
+        layerCursor = anim->GetAnimCursor("LayerMotion01");
 
-                    LayerTurnLCur.Advance(GameState::DeltaTime());
-                    LayerTurnRCur.Advance(GameState::DeltaTime());
-                    if (rotAngle > 0.0f)
-                        Get<Animator>()->ApplyAdd(LayerTurnRCur, rotAngle / 3.0f);    
-                    if (rotAngle < 0.0f)
-                        Get<Animator>()->ApplyAdd(LayerTurnLCur, -rotAngle / 3.0f);
-                },
-                { "Fall", "Idle", "Turn180" }
-            }
-        );
-        actor->AddState(
-            "Turn180",
-            {
-                [this]()->bool{
-                    return grounded && angleAbs > 2.0f;
-                },
-                [this](){
-                    motion->Blend("Turn180", 0.1f);
-                },
-                [this](){
-                    if(Get<Animator>()->Stopped(0.15f))
-                        actor->SwitchState("Idle");
-                },
-                {  }
-            }
-        );
-        actor->AddState(
-            "Fall",
-            {
-                [this]()->bool{
-                    return !grounded;
-                },
-                [this](){
-                    motion->Blend("Bind", 0.1f);
-                },
-                [this](){
-                    _checkForGround();
-                    grav_velo += 9.8f * GameState::DeltaTime() * GameState::DeltaTime();
-                    Get<Transform>()->Translate(0.0, -grav_velo, 0.0);
-                },
-                { "Idle", "Walk" }
-            }
-        );
-        actor->SwitchState("Idle");        
+        cam = GetObject()->Root()->CreateObject()->Get<CharacterCamera>();
+        cam->SetTarget(m->GetObject()->FindObject("Root")->Get<Transform>());
     }
-private:
-    void _checkForGround()
-	{
-		Transform* trans = GetComponent<Transform>();
-		
-		gfxm::vec3 pos = trans->Position() + gfxm::vec3(0.0f, 1.0f, 0.0f);
-		Collision::RayHit hit;
-		if(collision->RayTest(gfxm::ray(pos, gfxm::vec3(0.0f, -1.1f, 0.0f)), hit))
-		{
-			groundHit = hit.position;
-			grounded = true;
-            gfxm::vec3 vec = trans->Position();
-            trans->Position(vec.x, groundHit.y, vec.z);
-		}
-		else
-		{
-			grounded = false;
-		}
-		motion->Set("grounded", grounded);
-		motion->Set("groundHit", groundHit);
-	}
 
-    AnimTrack::Cursor LayerTurnLCur;
-    AnimTrack::Cursor LayerTurnRCur;
-    AnimTrack::Cursor layerMotion1;
+    void OnUpdate()
+    {
+        layerCursor += GameState::DeltaTime();
+        anim->ApplyAdd(layerCursor, 1.0f);
+    }
 
-    Actor* actor;
-    KinematicObject* kinematicObject;
-    Collision* collision;
-    MotionScript* motion; // MotionFlow ?
-    Animator* animator;
+    void OnCleanup()
+    {
 
-    float rotAngle;
-    float angleAbs;
-	gfxm::vec3 velocity;
-	gfxm::vec3 groundHit;
-	bool grounded;
-    float grav_velo = 0.0f;
+    }
+
+    Model* m;
+
+    CharacterCamera* cam = 0;
+
+    Animator* anim;
+    AnimTrack::Cursor layerCursor;
 };
 
 #endif
