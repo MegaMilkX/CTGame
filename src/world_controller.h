@@ -9,6 +9,8 @@
 #include "character.h"
 #include "free_camera.h"
 
+#include "debug_drawer.h"
+
 class WorldController : public Updatable
 {
 public:
@@ -16,7 +18,9 @@ public:
     {
         LOG("Hello");
 
-        //freeCamera = CreateObject()->Get<FreeCamera>();        
+        Get<DebugDrawer>();
+
+        freeCamera = CreateObject()->Get<FreeCamera>();        
 
         LightOmni* light = CreateObject()->Get<LightOmni>();
         light->Color(1, 1, 1);

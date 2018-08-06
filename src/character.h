@@ -25,8 +25,10 @@ public:
 
         layerCursor = anim->GetAnimCursor("LayerMotion01");
 
-        cam = GetObject()->Root()->CreateObject()->Get<CharacterCamera>();
-        cam->SetTarget(m->GetObject()->FindObject("Root")->Get<Transform>());
+        //cam = GetObject()->Root()->CreateObject()->Get<CharacterCamera>();
+        //cam->SetTarget(m->GetObject()->FindObject("Root")->Get<Transform>());
+
+
     }
 
     void OnUpdate()
