@@ -5,13 +5,14 @@
 #include <camera.h>
 #include <transform.h>
 #include <game_state.h>
+#include <light_omni.h>
 
 class FreeCamera : public SceneObject::Component
 {
 public:
     void OnInit()
     {
-        c = CreateObject()->Get<Camera>();
+        c = Get<Camera>();
         c->Get<Transform>()->Translate(0, 1.6, 4);
         GetObject()->Root()->Get<Renderer>()->CurrentCamera(c);
 
@@ -24,6 +25,10 @@ public:
 
         GameState::GetInput()->BindActionPress("Use", std::bind(&FreeCamera::Use, this));
         GameState::GetInput()->BindActionPress("ResetFreeCam", std::bind(&FreeCamera::ResetTransform, this));
+    
+        LightOmni* light = Get<LightOmni>();
+        light->Color(1, 1, 1);
+        light->Intensity(1);
     }
 
     void Use()
@@ -33,28 +38,28 @@ public:
 
     void ResetTransform()
     {
-        c->Get<Transform>()->Position(0.0f, 1.6f, 4.0f);
-        c->Get<Transform>()->Rotation(gfxm::quat(0.0f, 0.0f, 0.0f, 1.0f));
+        Get<Transform>()->Position(0.0f, 1.6f, 4.0f);
+        Get<Transform>()->Rotation(gfxm::quat(0.0f, 0.0f, 0.0f, 1.0f));
     }
 
     void MoveX(float v)
     {
-        c->Get<Transform>()->Translate(v * GameState::DeltaTime() * c->Get<Transform>()->Right());
+        Get<Transform>()->Translate(v * GameState::DeltaTime() * Get<Transform>()->Right());
     }
 
     void MoveY(float v)
     {
-        c->Get<Transform>()->Translate(-v * GameState::DeltaTime() * c->Get<Transform>()->Back());
+        Get<Transform>()->Translate(-v * GameState::DeltaTime() * Get<Transform>()->Back());
     }
 
     void RotateX(float v)
     {
-        c->Get<Transform>()->Rotate(-v * 0.005, gfxm::vec3(0.0f,1.0f,0.0f));
+        Get<Transform>()->Rotate(-v * 0.005, gfxm::vec3(0.0f,1.0f,0.0f));
     }
 
     void RotateY(float v)
     {
-        c->Get<Transform>()->Rotate(-v * 0.005, c->Get<Transform>()->Right());
+        Get<Transform>()->Rotate(-v * 0.005, Get<Transform>()->Right());
     }
 
     Camera* c;
