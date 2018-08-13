@@ -67,14 +67,33 @@ class FbxLimbNode {};
 class FbxLight {};
 class FbxCamera {};
 
+template<typename T>
+class FbxNodeContainer
+{
+public:
+    T& GetByUid(int64_t uid);
+    void Add(T& node);
+    void FindAll(FbxNode& rootNode, const std::string& fbxName)
+    {
+        for(unsigned i = 0; i < rootNode.ChildCount(fbxName); ++i){
+            elements.emplace_back(T(rootNode.GetNode(fbxName, i)));
+        }
+    }
+
+    std::vector<T> elements;
+};
+
 class FbxModelTree
 {
 public:
     FbxModelTree(FbxNode& rootNode)
     {
-        for(unsigned i = 0; i < rootNode.ChildCount("Geometry"); ++i){
-            geometries.emplace_back(FbxGeometry());
+        for(unsigned i = 0; i < rootNode.ChildCount("C"); ++i){
+            connections.emplace_back(FbxConnection(rootNode.GetNode("C", i)));
         }
+
+        geometries.FindAll(rootNode, "Geometry");
+        
         for(unsigned i = 0; i < rootNode.ChildCount("Model"); ++i){
             models.emplace_back(FbxModel(rootNode.GetNode("Model", i)));
         }
@@ -86,7 +105,8 @@ public:
         }
     }
 private:
-    std::vector<FbxGeometry> geometries;
+    FbxNodeContainer<FbxGeometry> geometries;
+
     std::vector<FbxModel> models;
     std::vector<FbxPose> poses;
     std::vector<FbxDeformer> deformers;
