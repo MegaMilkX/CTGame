@@ -13,7 +13,7 @@ public:
     void OnInit()
     {
         c = Get<Camera>();
-        c->Get<Transform>()->Translate(0, 1.6, 4);
+        c->Get<Transform>()->Translate(0, 1.6f, 4);
         GetObject()->Root()->Get<Renderer>()->CurrentCamera(c);
 
         c->Perspective(1.0f, 16.0f/9.0f, 0.1f, 100.0f);
@@ -54,12 +54,12 @@ public:
 
     void RotateX(float v)
     {
-        Get<Transform>()->Rotate(-v * 0.005, gfxm::vec3(0.0f,1.0f,0.0f));
+        Get<Transform>()->Rotate(-v * 0.005f, gfxm::vec3(0.0f,1.0f,0.0f));
     }
 
     void RotateY(float v)
     {
-        Get<Transform>()->Rotate(-v * 0.005, Get<Transform>()->Right());
+        Get<Transform>()->Rotate(-v * 0.005f, Get<Transform>()->Right());
     }
 
     Camera* c;
