@@ -4,8 +4,7 @@
 #include "serialize_scene.h"
 #include "deserialize_scene.h"
 
-#include "fbx/fbx_reader.h"
-#include "fbx/fbx_model_tree.h"
+#include "fbx_read/fbx_read.h"
 
 class ResourceRef
 {
@@ -40,37 +39,52 @@ bool SceneFromModel(SceneObject* scene, Au::Media::FBX::Model* model)
     return true;
 }
 
-bool SceneFromFbx(char* data, size_t size, SceneObject* scene)
+void SceneFromFbxModel(FbxModel& fbxModel, FbxScene& fbxScene, SceneObject* sceneObject){
+    for(unsigned i = 0; i < fbxModel.ChildCount(); ++i)
+    {
+        SceneObject* child = sceneObject->CreateObject();
+        sceneObject->Get<Transform>()->Attach(child->Get<Transform>());
+
+        SceneFromFbxModel(fbxModel.GetChild(i, fbxScene), fbxScene, child);
+    }
+
+    sceneObject->Name(fbxModel.GetName());
+    LOG("Created object: " << fbxModel.GetName());
+    LOG("Type: " << fbxModel.GetType());
+
+    Transform* t = sceneObject->Get<Transform>();
+    FbxVector3 pos = fbxModel.GetLclTranslation();
+    FbxVector3 rot = fbxModel.GetLclRotation();
+    FbxVector3 scl = fbxModel.GetLclScaling();
+
+    //t->Position(*(gfxm::vec3*)&pos);
+    //t->Rotation(rot.x, rot.y, rot.z);
+    //t->Scale(*(gfxm::vec3*)&scl);
+
+    sceneObject->Get<Transform>()->SetTransform(*(gfxm::mat4*)&fbxModel.GetTransform());
+}
+
+void SceneFromFbx(FbxScene& fbxScene, SceneObject* scene){
+    for(unsigned i = 0; i < fbxScene.ModelCount(); ++i)
+        SceneFromFbxModel(fbxScene.GetModel(i), fbxScene, scene->CreateObject());
+}
+
+bool SceneFromFbx(const char* data, size_t size, SceneObject* scene)
 {
-    FbxReader reader;
     FbxScene fbxScene;
-    reader.ReadMem(data, size, fbxScene);
-
-    FbxModelTree modelTree(reader.GetRootNode());
-
+    if(!FbxReadMem(fbxScene, data, size))
+        return false;
+    SceneFromFbx(fbxScene, scene);
     return true;
 }
 
 bool SceneFromFbx(const std::string& filename, SceneObject* scene)
 {    
-    std::ifstream f(filename, std::ios::binary | std::ios::ate);
-    if(!f.is_open())
-    {
-        std::cout << "Failed to open " << filename << std::endl;
+    FbxScene fbxScene;
+    if(!FbxReadFile(fbxScene, filename))
         return false;
-    }
-    std::streamsize size = f.tellg();
-    f.seekg(0, std::ios::beg);
-    std::vector<char> buffer((unsigned int)size);
-    if(!f.read(buffer.data(), (unsigned int)size))
-    {
-        f.close();
-        return false;
-    }
-
-    SceneFromFbx(buffer.data(), buffer.size(), scene);
-
-    f.close();
+    SceneFromFbx(fbxScene, scene);
+    fbxScene._dumpFile(filename);
     return true;
 }
 
