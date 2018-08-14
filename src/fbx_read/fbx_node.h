@@ -4,6 +4,8 @@
 #include "fbx_prop.h"
 #include <map>
 
+#define PROPERTY_NODE_NAME "Properties70"
+
 class FbxNode
 {
 public:

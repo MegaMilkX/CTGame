@@ -19,6 +19,7 @@ public:
     template<typename T>
     std::vector<T> GetArray();
     
+    void Print(std::ostringstream& sstr, unsigned level = 0);
 private:
     char type;
     unsigned arraySize;

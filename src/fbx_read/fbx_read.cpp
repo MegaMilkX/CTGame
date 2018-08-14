@@ -1,15 +1,16 @@
-#include "fbx_reader.h"
+#include "fbx_read.h"
 #include <aurora/deflate.h>
+#include <fstream>
 
-uint32_t Offset(const char* begin, const char* cursor)
+uint32_t FbxOffset(const char* begin, const char* cursor)
 {
     return static_cast<unsigned int>(cursor - begin);
 }
 
 template<typename TYPE>
-TYPE Read(const char* data, const char*& cursor, const char* end)
+TYPE FbxRead(const char* data, const char*& cursor, const char* end)
 {
-    if(Offset(cursor, end) < sizeof(TYPE))
+    if(FbxOffset(cursor, end) < sizeof(TYPE))
         return 0;
     
     TYPE result = *reinterpret_cast<const TYPE*>(cursor);
@@ -19,16 +20,16 @@ TYPE Read(const char* data, const char*& cursor, const char* end)
     return result;
 }
 
-bool ReadString(std::string& out, const char* data, const char*& cursor, const char* end,
+bool FbxReadString(std::string& out, const char* data, const char*& cursor, const char* end,
     bool word_len = false)
 {
-    const Word len_len = word_len ? 4 : 1;
-    if(Offset(cursor, end) < len_len)
+    const FbxWord len_len = word_len ? 4 : 1;
+    if(FbxOffset(cursor, end) < len_len)
         return false;
     
-    const Word length = word_len ? Read<Word>(data, cursor, end) : Read<Byte>(data, cursor, end);
+    const FbxWord length = word_len ? FbxRead<FbxWord>(data, cursor, end) : FbxRead<FbxByte>(data, cursor, end);
     
-    if(Offset(cursor, end) < length)
+    if(FbxOffset(cursor, end) < length)
         return false;
     
     std::string str(cursor, cursor + length);
@@ -38,7 +39,10 @@ bool ReadString(std::string& out, const char* data, const char*& cursor, const c
     return true;
 }
 
-bool FbxReader::ReadMem(const char* data, size_t size, FbxScene& scene)
+void FbxReadData(FbxProp& prop, std::vector<char>& out, const char* data, const char*& cursor, const char* end);
+bool FbxReadBlock(FbxNode& node, const char* data, const char*& cursor, const char* end, FbxWord flags);
+
+bool FbxReadMem(FbxScene& out_scene, const char* data, size_t size)
 {
     if(!data) return false;
     if(size < 0x1b) return false;
@@ -49,31 +53,54 @@ bool FbxReader::ReadMem(const char* data, size_t size, FbxScene& scene)
     }
 
     const char* cursor = data + 0x15;
-    const Word flags = Read<Word>(data, cursor, data + size);
-    const Byte padding_0 = Read<Byte>(data, cursor, data + size);
-    const Byte padding_1 = Read<Byte>(data, cursor, data + size);
+    const FbxWord flags = FbxRead<FbxWord>(data, cursor, data + size);
+    const FbxByte padding_0 = FbxRead<FbxByte>(data, cursor, data + size);
+    const FbxByte padding_1 = FbxRead<FbxByte>(data, cursor, data + size);
 
     while(cursor < data + size)
     {
-        if(!ReadBlock(rootNode, data, cursor, data + size, flags)) 
+        if(!FbxReadBlock(out_scene._getRootNode(), data, cursor, data + size, flags)) 
             break;
     }
+
+    out_scene._finalize();
+
+    return true;
 }
 
-bool FbxReader::ReadFile(const std::string& filename, FbxScene& scene)
+bool FbxReadFile(FbxScene& out_scene, const std::string& filename)
 {
+    std::ifstream f(filename, std::ios::binary | std::ios::ate);
+    if(!f.is_open())
+    {
+        std::cout << "Failed to open " << filename << std::endl;
+        return false;
+    }
+    std::streamsize size = f.tellg();
+    f.seekg(0, std::ios::beg);
+    std::vector<char> buffer((unsigned int)size);
+    if(!f.read(buffer.data(), (unsigned int)size))
+    {
+        f.close();
+        std::cout << "Failed to read " << filename << std::endl;
+        return false;
+    }
 
+    FbxReadMem(out_scene, buffer.data(), buffer.size());
+
+    f.close();
+    return true;
 }
 
-void FbxReader::ReadData(FbxProp& prop, std::vector<char>& out, const char* data, const char*& cursor, const char* end)
+void FbxReadData(FbxProp& prop, std::vector<char>& out, const char* data, const char*& cursor, const char* end)
 {
     bool is_encoded = false;
-    Word uncomp_len;    
-    if(Offset(cursor, end) < 1){
+    FbxWord uncomp_len;    
+    if(FbxOffset(cursor, end) < 1){
         //std::cout << "out of bounds while reading data length" << std::endl;
         return;
     }
-    Word stride = 0; // For arrays
+    FbxWord stride = 0; // For arrays
     const char type = *cursor;
     const char* sbegin = ++cursor;
     
@@ -94,7 +121,7 @@ void FbxReader::ReadData(FbxProp& prop, std::vector<char>& out, const char* data
     case 'L': cursor += 8; break;
     // Binary data
     case 'R': {
-        const Word length = Read<Word>(data, cursor, end);
+        const FbxWord length = FbxRead<FbxWord>(data, cursor, end);
         cursor += length;
         break;
     }
@@ -103,9 +130,9 @@ void FbxReader::ReadData(FbxProp& prop, std::vector<char>& out, const char* data
     case 'i':
     case 'd':
     case 'l': {
-        const Word length = Read<Word>(data, cursor, end);
-        const Word encoding = Read<Word>(data, cursor, end);
-        const Word comp_len = Read<Word>(data, cursor, end);
+        const FbxWord length = FbxRead<FbxWord>(data, cursor, end);
+        const FbxWord encoding = FbxRead<FbxWord>(data, cursor, end);
+        const FbxWord comp_len = FbxRead<FbxWord>(data, cursor, end);
         //std::cout << "LEN: " << length << "|" << "ENC: " << encoding << "|" << "COMP_LEN: " << comp_len << std::endl;
         sbegin = cursor;
         
@@ -155,7 +182,7 @@ void FbxReader::ReadData(FbxProp& prop, std::vector<char>& out, const char* data
     case 'S':
     {
         std::string str;
-        ReadString(str, data, cursor, end, true);
+        FbxReadString(str, data, cursor, end, true);
         sbegin = cursor - str.size();
         //std::cout << "data str: " << str << std::endl;
         break;
@@ -182,30 +209,30 @@ void FbxReader::ReadData(FbxProp& prop, std::vector<char>& out, const char* data
     //std::cout << "Data read: " << out.size() << std::endl;
 }
 
-bool FbxReader::ReadBlock(FbxNode& node, const char* data, const char*& cursor, const char* end, Word flags)
+bool FbxReadBlock(FbxNode& node, const char* data, const char*& cursor, const char* end, FbxWord flags)
 {
-    const Word end_offset = Read<Word>(data, cursor, end);
+    const FbxWord end_offset = FbxRead<FbxWord>(data, cursor, end);
     
     if(end_offset == 0)
     {
         //std::cout << "end_offset is 0" << std::endl;
         return false;
     }
-    if(end_offset > Offset(data, end))
+    if(end_offset > FbxOffset(data, end))
     {
         //std::cout << "end_offset > Offset(data, end)" << std::endl;
         return false;
     }
-    else if(end_offset < Offset(data, cursor))
+    else if(end_offset < FbxOffset(data, cursor))
     {
         //std::cout << "end_offset < Offset(data, end)" << std::endl;
         return false;
     }
-    const Word prop_count = Read<Word>(data, cursor, end);
-    const Word prop_len = Read<Word>(data, cursor, end);
+    const FbxWord prop_count = FbxRead<FbxWord>(data, cursor, end);
+    const FbxWord prop_len = FbxRead<FbxWord>(data, cursor, end);
     
     std::string block_name;
-    ReadString(block_name, data, cursor, end);
+    FbxReadString(block_name, data, cursor, end);
     //std::cout << "BLOCK: [" << block_name << "]" << std::endl;
     node.SetName(block_name);
     //node.SetPropCount(prop_count);
@@ -215,30 +242,30 @@ bool FbxReader::ReadBlock(FbxNode& node, const char* data, const char*& cursor, 
     {
         FbxProp prop;
         std::vector<char> actual_data;
-        ReadData(prop, actual_data, data, cursor, begin_cur + prop_len);
+        FbxReadData(prop, actual_data, data, cursor, begin_cur + prop_len);
         node.AddProp(prop);
     }
     
-    if(Offset(begin_cur, cursor) != prop_len)
+    if(FbxOffset(begin_cur, cursor) != prop_len)
     {
         //std::cout << "Property length was not reached" << std::endl;
         return false;
     }
     
-    const size_t sentinel_block_length = sizeof(Word) * 3 + 1;
+    const size_t sentinel_block_length = sizeof(FbxWord) * 3 + 1;
     
-    if(Offset(data, cursor) < end_offset)
+    if(FbxOffset(data, cursor) < end_offset)
     {
-        if(end_offset - Offset(data, cursor) < sentinel_block_length)
+        if(end_offset - FbxOffset(data, cursor) < sentinel_block_length)
         {
             //std::cout << "Insufficient padding bytes at block end" << std::endl;
             return false;
         }
         
-        while(Offset(data, cursor) < end_offset - sentinel_block_length)
+        while(FbxOffset(data, cursor) < end_offset - sentinel_block_length)
         {
             FbxNode new_node;
-            ReadBlock(new_node, data, cursor, data + end_offset - sentinel_block_length, flags);
+            FbxReadBlock(new_node, data, cursor, data + end_offset - sentinel_block_length, flags);
             node.AddNode(new_node);
         }
         
@@ -253,7 +280,7 @@ bool FbxReader::ReadBlock(FbxNode& node, const char* data, const char*& cursor, 
         cursor += sentinel_block_length;
     }
     
-    if(Offset(data, cursor) != end_offset)
+    if(FbxOffset(data, cursor) != end_offset)
     {
         //std::cout << "scope length not reached" << std::endl;
         return false;
