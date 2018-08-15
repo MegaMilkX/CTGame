@@ -3,6 +3,7 @@
 
 #include "fbx_node.h"
 #include "fbx_model.h"
+#include "fbx_geometry.h"
 #include "fbx_connection.h"
 #include "fbx_math.h"
 
@@ -21,6 +22,7 @@ public:
     unsigned ModelCount() const;
     FbxModel& GetModel(unsigned i);
     FbxModel& GetModelByUid(int64_t uid);
+    FbxGeometry& GetGeometry(int64_t uid);
 
     void _dumpFile(const std::string& filename);
     /* Don't use this */
@@ -30,6 +32,7 @@ public:
 private:
     void _makeGlobalSettings();
     void _makeModel(FbxNode& node);
+    void _makeGeometry(FbxNode& node);
     FbxConnection* _findObjectToObjectParentConnection(int64_t uid);
 
     FbxNode rootNode;
@@ -38,6 +41,7 @@ private:
 
     std::vector<int64_t> rootModels;
     std::map<int64_t, FbxModel> models;
+    std::map<int64_t, FbxGeometry> geometries;
 
     std::vector<FbxConnection> connections;
 };

@@ -6,36 +6,27 @@
 
 #include "fbx_read/fbx_read.h"
 
-class ResourceRef
+bool MakeGeometryResourceData(std::vector<char>& out_data)
 {
-public:
-    std::string name;
-    Resource* resource = 0;
-};
+    mz_zip_archive zip;
+    memset(&zip, 0, sizeof(zip));
+    mz_zip_writer_init_heap(&zip, 0, 0);
 
-SceneObject* CreateOrFindFromModel(SceneObject* scene, Au::Media::FBX::Model* model)
-{
-    SceneObject* so = scene->FindObject(model->name);
-    if(!so)
-    {
-        so = scene->CreateObject();
-        so->Name(model->name);
-    }
+    int mem;
+    mz_zip_writer_add_mem(&zip, "Vertices", &mem, sizeof(int), 0);
+    mz_zip_writer_add_mem(&zip, "Indices", &mem, sizeof(int), 0);
+    mz_zip_writer_add_mem(&zip, "Normals/0", &mem, sizeof(int), 0);
+    mz_zip_writer_add_mem(&zip, "UV/0", &mem, sizeof(int), 0);
+    mz_zip_writer_add_mem(&zip, "BoneIndices", &mem, sizeof(int), 0);
+    mz_zip_writer_add_mem(&zip, "BoneWeights", &mem, sizeof(int), 0);
+    mz_zip_writer_add_mem(&zip, "Submeshes/Cube", &mem, sizeof(int), 0);
+    mz_zip_writer_add_mem(&zip, "Submeshes/Teapot", &mem, sizeof(int), 0);
 
-    return so;
-}
-
-bool SceneFromModel(SceneObject* scene, Au::Media::FBX::Model* model)
-{
-
-
-    for(unsigned i = 0; i < model->ChildCount(); ++i)
-    {
-        auto node = model->GetChild(i);
-        auto mdl = Au::Media::FBX::Model(model->settings, model->root, node);
-
-    }
-
+    void* bufPtr;
+    size_t bufSize;
+    mz_zip_writer_finalize_heap_archive(&zip, &bufPtr, &bufSize);
+    out_data = std::vector<char>((char*)bufPtr, (char*)bufPtr + bufSize);
+    mz_zip_writer_end(&zip);
     return true;
 }
 
@@ -51,15 +42,6 @@ void SceneFromFbxModel(FbxModel& fbxModel, FbxScene& fbxScene, SceneObject* scen
     sceneObject->Name(fbxModel.GetName());
     LOG("Created object: " << fbxModel.GetName());
     LOG("Type: " << fbxModel.GetType());
-
-    Transform* t = sceneObject->Get<Transform>();
-    FbxVector3 pos = fbxModel.GetLclTranslation();
-    FbxVector3 rot = fbxModel.GetLclRotation();
-    FbxVector3 scl = fbxModel.GetLclScaling();
-
-    //t->Position(*(gfxm::vec3*)&pos);
-    //t->Rotation(rot.x, rot.y, rot.z);
-    //t->Scale(*(gfxm::vec3*)&scl);
 
     sceneObject->Get<Transform>()->SetTransform(*(gfxm::mat4*)&fbxModel.GetTransform());
 }
@@ -99,6 +81,12 @@ void Aurora2Init()
     DeserializeScene("test.scn", so);
 
     SceneFromFbx("character.fbx", myScene.CreateObject());
+
+    std::vector<char> buf;
+    MakeGeometryResourceData(buf);
+    std::ofstream f("geometry.geo");
+    f.write(buf.data(), buf.size());
+    f.close();
 
     GameState::SetScene(&myScene);
 }
