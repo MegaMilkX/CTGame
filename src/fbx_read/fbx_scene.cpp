@@ -17,6 +17,16 @@ FbxModel& FbxScene::GetModelByUid(int64_t uid)
     return models[uid];
 }
 
+FbxMesh& FbxScene::GetMesh(int64_t uid)
+{
+    return meshes[uid];
+}
+
+FbxGeometry& FbxScene::GetGeometry(int64_t uid)
+{
+    return geometries[uid];
+}
+
 void FbxScene::_dumpFile(const std::string& filename)
 {
     std::ostringstream sstr;
@@ -30,6 +40,11 @@ void FbxScene::_finalize()
 {
     _makeGlobalSettings();
 
+    for(unsigned i = 0; i < rootNode.ChildCount("Geometry"); ++i){
+        FbxNode& node = rootNode.GetNode("Geometry", i);
+        _makeGeometry(node);
+    }
+
     for(unsigned i = 0; i < rootNode.ChildCount("C"); ++i){
         FbxNode& node = rootNode.GetNode("C", i);
         connections.emplace_back(FbxConnection(node));
@@ -37,11 +52,11 @@ void FbxScene::_finalize()
 
     for(unsigned i = 0; i < rootNode.ChildCount("Model"); ++i){
         FbxNode& node = rootNode.GetNode("Model", i);
-        _makeModel(node);        
-    }
-    for(unsigned i = 0; i < rootNode.ChildCount("Geometry"); ++i){
-        FbxNode& node = rootNode.GetNode("Geometry", i);
-        _makeGeometry(node);
+        FbxModel& model = _makeModel(node);
+        if(model.GetType() == FbxMesh::Type())
+        {
+            _makeMesh(node);
+        }        
     }
 }
 
@@ -60,10 +75,11 @@ void FbxScene::_makeGlobalSettings()
     }
 }
 
-void FbxScene::_makeModel(FbxNode& node)
+FbxModel& FbxScene::_makeModel(FbxNode& node)
 {
     int64_t uid = node.GetProperty(0).GetInt64();
     FbxModel& model = models[uid];
+    model.SetUid(uid);
     model.SetName(node.GetProperty(1).GetString());
     model.SetType(node.GetProperty(2).GetString());
 
@@ -147,6 +163,24 @@ void FbxScene::_makeModel(FbxNode& node)
     model.SetLclTranslation(lclTranslation);
     model.SetLclRotation(lclRotation);
     model.SetLclScaling(lclScaling);
+
+    return model;
+}
+
+void FbxScene::_makeMesh(FbxNode& node)
+{
+    int64_t uid = node.GetProperty(0).GetInt64();
+    FbxMesh& mesh = meshes[uid];
+    mesh.SetUid(uid);
+
+    for(auto& conn : connections){
+        if(conn.parent_uid == uid)
+        {
+            auto it = geometries.find(conn.child_uid);
+            if(it == geometries.end()) continue;
+            mesh.SetGeometryUid(it->first);
+        }
+    }
 }
 
 void FbxScene::_makeGeometry(FbxNode& node)
@@ -154,6 +188,7 @@ void FbxScene::_makeGeometry(FbxNode& node)
     int64_t uid = node.GetProperty(0).GetInt64();
     std::string name = node.GetProperty(0).GetString();
     FbxGeometry& geom = geometries[uid];
+    geom.SetUid(uid);
 
     std::vector<int32_t> fbxIndices;
     std::vector<double> fbxVertices;

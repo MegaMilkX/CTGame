@@ -1,6 +1,7 @@
 #ifndef FBX_MODEL_H
 #define FBX_MODEL_H
 
+#include "fbx_object.h"
 #include "fbx_node.h"
 #include "fbx_math.h"
 #include <vector>
@@ -8,7 +9,7 @@
 
 class FbxScene;
 
-class FbxModel
+class FbxModel : public FbxObject
 {
 public:
     FbxModel(){}
