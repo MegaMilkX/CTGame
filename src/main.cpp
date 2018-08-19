@@ -8,6 +8,8 @@
 
 #include "mesh_buffer.h"
 
+#include <scene_controller.h>
+
 bool MakeGeometryResourceData(std::vector<char>& out_data)
 {
     mz_zip_archive zip;
@@ -42,8 +44,8 @@ void SceneFromFbxModel(FbxModel& fbxModel, FbxScene& fbxScene, SceneObject* scen
     }
 
     sceneObject->Name(fbxModel.GetName());
-    LOG("Created object: " << fbxModel.GetName());
-    LOG("Type: " << fbxModel.GetType());
+    //LOG("Created object: " << fbxModel.GetName());
+    //LOG("Type: " << fbxModel.GetType());
 
     sceneObject->Get<Transform>()->SetTransform(*(gfxm::mat4*)&fbxModel.GetTransform());
     if(fbxModel.GetType() == FbxMesh::Type())
@@ -88,25 +90,26 @@ bool SceneFromFbx(const std::string& filename, SceneObject* scene)
     return true;
 }
 
-class ResourceRef
+class ResTest : public ResourceObject
 {
 public:
-    typedef std::function<void(ResourceRef&)> on_change_func_t;
-
-    ResourceRef() {}
-    ResourceRef(const std::string& name) {}
-    template<typename T>
-    T* Get()
+    void Print()
     {
-        return 0;
+        LOG(data);
     }
-    void SetOnChangeCallback(on_change_func_t cb);
+    virtual bool Build(ResourceRaw* raw)
+    {
+        data.resize(raw->Size());
+        raw->ReadAll((char*)data.data());
+        return true;
+    }
 private:
-    on_change_func_t onChangeFunc;
+    std::string data;
 };
 
 SceneObject myScene;
 SceneObject so;
+SceneObject fbx_so;
 
 void Aurora2Init()
 {
@@ -115,24 +118,20 @@ void Aurora2Init()
     SerializeScene(&myScene, "test.scn");
     DeserializeScene("test.scn", so);
 
-    SceneObject fbx_so;
-    SceneFromFbx("character.fbx", &fbx_so);
-    SerializeScene(&fbx_so, "fbx_so.scn");
+    SceneObject* fbx_child = myScene.CreateObject();
+    SceneFromFbx("character.fbx", fbx_child);
+    SerializeScene(fbx_child, "fbx_so.scn");
 
     std::vector<char> buf;
     MakeGeometryResourceData(buf);
     std::ofstream f("geometry.geo");
     f.write(buf.data(), buf.size());
     f.close();
+/*
+    ResourceRef ref("General.Script.scene");
+    ref.Get<ResTest>()->Print();
+*/
+    GameState::GetSceneController().SetScene(&myScene);
 
-    MeshBuffer mb;
-    std::vector<char> vertices;
-    std::vector<char> normals;
-    mb.SetAttribArray<Position>(vertices.data(), vertices.size());
-    mb.SetAttribArray<Normal>(normals.data(), normals.size());
-
-    ResourceRef ref("General.Character");
-    ref.Get<SceneObject>();
-
-    GameState::SetScene(&myScene);
+    //GameState::SetScene(&myScene);
 }

@@ -9,16 +9,12 @@
 #include "character.h"
 #include "free_camera.h"
 
-#include "debug_drawer.h"
-
 class WorldController : public Updatable
 {
 public:
     void OnStart()
     {
         LOG("Hello");
-
-        Get<DebugDrawer>();
 
         freeCamera = CreateObject()->Get<FreeCamera>();        
 /*
@@ -38,7 +34,7 @@ public:
         //chara = CreateObject()->Get<Character>();
 
         Model* m = CreateObject()->Get<Model>();
-        m->SetMesh("General.Model.miku2");
+        m->SetMesh("General.Model.miku2.geo");
         m->SetMaterial("General.Material.mat");
         //m->Get<Transform>()->Scale(30.0f);
     }

@@ -14,8 +14,8 @@ public:
     void OnStart()
     {
         m = Get<Model>();
-        m->mesh.set("General.Player.Mesh");
-        m->material.set("General.Material.material2");
+        m->mesh.Set("General.Player.Mesh.geo");
+        m->material.Set("General.Material.material2");
 
         m->Get<Skeleton>()->SetData("General.Player.Skeleton");
 
