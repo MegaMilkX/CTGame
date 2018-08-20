@@ -4,6 +4,7 @@
 #include "fbx_node.h"
 #include "fbx_model.h"
 #include "fbx_mesh.h"
+#include "fbx_light.h"
 #include "fbx_geometry.h"
 #include "fbx_connection.h"
 #include "fbx_math.h"
