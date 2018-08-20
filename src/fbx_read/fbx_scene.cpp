@@ -42,7 +42,9 @@ void FbxScene::_finalize()
 
     for(unsigned i = 0; i < rootNode.ChildCount("Geometry"); ++i){
         FbxNode& node = rootNode.GetNode("Geometry", i);
-        _makeGeometry(node);
+        int64_t uid = node.GetProperty(0).GetInt64();
+        FbxGeometry& geom = geometries[uid];
+        geom.Make(node);
     }
 
     for(unsigned i = 0; i < rootNode.ChildCount("C"); ++i){
@@ -181,36 +183,6 @@ void FbxScene::_makeMesh(FbxNode& node)
             mesh.SetGeometryUid(it->first);
         }
     }
-}
-
-void FbxScene::_makeGeometry(FbxNode& node)
-{
-    int64_t uid = node.GetProperty(0).GetInt64();
-    std::string name = node.GetProperty(0).GetString();
-    FbxGeometry& geom = geometries[uid];
-    geom.SetUid(uid);
-
-    std::vector<int32_t> fbxIndices;
-    std::vector<double> fbxVertices;
-    std::vector<std::vector<double>> fbxNormalLayers;
-    std::vector<std::vector<double>> fbxUvLayers;
-    const std::string indexNodeName = "PolygonVertexIndex";
-    const std::string vertexNodeName = "Vertices";
-    if(node.ChildCount(indexNodeName))
-    {
-        fbxIndices =
-            node.GetNode(indexNodeName, 0)
-                .GetProperty(0)
-                .GetArray<int32_t>();        
-    }
-    if(node.ChildCount(vertexNodeName))
-    {
-        fbxVertices = 
-            node.GetNode(vertexNodeName, 0)
-                .GetProperty(0)
-                .GetArray<double>();
-    }
-    
 }
 
 FbxConnection* FbxScene::_findObjectToObjectParentConnection(int64_t uid)

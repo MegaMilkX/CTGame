@@ -36,7 +36,6 @@ private:
     void _makeGlobalSettings();
     FbxModel& _makeModel(FbxNode& node);
     void _makeMesh(FbxNode& node);
-    void _makeGeometry(FbxNode& node);
     FbxConnection* _findObjectToObjectParentConnection(int64_t uid);
 
     FbxNode rootNode;
