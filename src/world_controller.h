@@ -16,13 +16,16 @@ public:
     {
         LOG("Hello");
 
-        freeCamera = CreateObject()->Get<FreeCamera>();        
-/*
+        freeCamera = CreateObject()->Get<FreeCamera>();
+        LightOmni* cl = freeCamera->Get<LightOmni>();    
+        cl->Color(1, 1, 1);
+        cl->Intensity(1);
+
         LightOmni* light = CreateObject()->Get<LightOmni>();
         light->Color(1, 1, 1);
         light->Intensity(1);
         light->Get<Transform>()->Translate(0, 0.3, 1);
-*/
+
         //Model* env = CreateObject()->Get<Model>();
         //env->mesh.set("General.Model.Room");
         //env->material.set("General.Material.material1");
@@ -34,7 +37,7 @@ public:
         //chara = CreateObject()->Get<Character>();
 
         Model* m = CreateObject()->Get<Model>();
-        m->SetMesh("General.Model.miku2.geo");
+        m->SetMesh("General.Model.naga.geo");
         m->SetMaterial("General.Material.mat");
         //m->Get<Transform>()->Scale(30.0f);
     }

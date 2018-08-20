@@ -58,12 +58,12 @@ void SceneFromFbxModel(FbxModel& fbxModel, FbxScene& fbxScene, SceneObject* scen
 
         LOG(fbxGeometry.GetUid() << fbxGeometry.GetName());
     }
-    /*
     else if(fbxModel.GetType() == FbxLight::Type())
     {
-        FbxLight& fbxLight = fbxScene.GetLight(fbxModel.GetUid());
+        LightOmni* o = sceneObject->Get<LightOmni>();
+        o->Color(1.0f, 1.0f, 1.0f);
+        o->Intensity(1.0f);
     }
-    */
 }
 
 void SceneFromFbx(FbxScene& fbxScene, SceneObject* scene){
