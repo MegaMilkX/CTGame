@@ -37,7 +37,7 @@ public:
         //chara = CreateObject()->Get<Character>();
 
         Model* m = CreateObject()->Get<Model>();
-        m->SetMesh("General.Model.naga.geo");
+        m->SetMesh("General.Model.miku2.geo");
         m->SetMaterial("General.Material.mat");
         //m->Get<Transform>()->Scale(30.0f);
     }
