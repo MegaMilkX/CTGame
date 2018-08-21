@@ -2,7 +2,63 @@
 #define FBX_GEOMETRY_H
 
 #include "fbx_object.h"
+#include "fbx_node.h"
 #include <string>
+#include <vector>
+#include <iostream>
+
+inline bool FbxTriangulate(std::vector<uint32_t>& out, std::vector<int32_t>& polygons)
+{
+    std::vector<int32_t> poly;
+    for(auto fbxi : polygons)
+    {
+        int32_t i = fbxi < 0 ? -fbxi - 1 : fbxi;
+        poly.emplace_back(i);
+
+        if(fbxi < 0) {
+            if(poly.size() < 3) {
+                poly.clear();
+                continue;
+            }
+
+            for(size_t p = 0; p < poly.size() - 2; ++p)
+            {
+                out.emplace_back(poly[0]);
+                out.emplace_back(poly[p + 1]);
+                out.emplace_back(poly[p + 2]);
+            }
+
+            poly.clear();
+        }
+    }
+
+    return true;
+}
+
+struct FbxVertexMapping
+{
+    int32_t vertex;
+    std::vector<int32_t> normals;
+    std::vector<int32_t> uvs;
+
+    bool operator==(const FbxVertexMapping& other) {
+        if(vertex != other.vertex)
+            return false;
+        if(normals.size() != other.normals.size())
+            return false;
+        for(unsigned i = 0; i < normals.size(); ++i) {
+            if(normals[i] != other.normals[i])
+                return false;
+        }
+        if(uvs.size() != other.uvs.size())
+            return false;
+        for(unsigned i = 0; i < uvs.size(); ++i) {
+            if(uvs[i] != other.uvs[i])
+                return false;
+        }
+        return true;
+    }
+};
 
 class FbxGeometry : public FbxObject
 {
@@ -24,48 +80,32 @@ public:
     bool Make(FbxNode& node)
     {
         int64_t uid = node.GetProperty(0).GetInt64();
-        std::string name = node.GetProperty(0).GetString();
+        std::string name = node.GetProperty(1).GetString();
         SetUid(uid);
         SetName(name);
-        /*
-        struct VertexMapping
-        {
-            int32_t vertex;
-            std::vector<int32_t> normals;
-            std::vector<int32_t> uvs;
-
-            bool operator==(const VertexMapping& other) {
-                if(vertex != other.vertex)
-                    return false;
-                if(normals.size() != other.normals.size())
-                    return false;
-                for(unsigned i = 0; i < normals.size(); ++i) {
-                    if(normals[i] != other.normals[i])
-                        return false;
-                }
-                if(uvs.size() != other.uvs.size())
-                    return false;
-                for(unsigned i = 0; i < uvs.size(); ++i) {
-                    if(uvs[i] != other.uvs[i])
-                        return false;
-                }
-                return true;
-            }
-        };
-        std::vector<VertexMapping> vertexMappings;
-
-        std::vector<int32_t> fbxIndices;
         const std::string indexNodeName = "PolygonVertexIndex";
         const std::string vertexNodeName = "Vertices";
+
+        std::vector<int32_t> fbxIndices;
         if(!node.ChildCount(indexNodeName))
             return false;
-
         fbxIndices =
             node.GetNode(indexNodeName, 0)
                 .GetProperty(0)
                 .GetArray<int32_t>();
-        vertexMappings.resize(fbxIndices.size());
-        */
+        FbxTriangulate(indices, fbxIndices);
+        std::cout << "fbxIndex count: " << fbxIndices.size() << std::endl;
+        std::cout << "Index count: " << indices.size() << std::endl;
+
+        std::vector<double> fbxVertices;
+        if(!node.ChildCount(vertexNodeName))
+            return false;
+        fbxVertices =
+            node.GetNode(vertexNodeName, 0)
+                .GetProperty(0)
+                .GetArray<double>();
+        vertices.reserve(fbxVertices.size());
+        for(auto d : fbxVertices) vertices.emplace_back((float)d);
 
         return true;
     }
