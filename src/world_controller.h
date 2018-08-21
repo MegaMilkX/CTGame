@@ -31,7 +31,7 @@ public:
         //env->material.set("General.Material.material1");
 
         LightDirect* ld = Get<LightDirect>();
-        ld->Color(1,1,1);
+        ld->Color(0.2f,0.3f,0.25f);
         ld->Direction(0, -1, 0);
 
         //chara = CreateObject()->Get<Character>();
