@@ -56,19 +56,32 @@ void SceneFromFbxModel(FbxModel& fbxModel, FbxScene& fbxScene, SceneObject* scen
             MKSTR(fbxGeometry.GetUid() << fbxGeometry.GetName())
         );
 
+        auto& vertices = fbxGeometry.GetVertices();
+        auto& indices = fbxGeometry.GetIndices();
+        LOG(vertices.size() / 3 << " vertices");
+        LOG("Triangle count: " << indices.size() / 3);
+
         LOG(fbxGeometry.GetUid() << fbxGeometry.GetName());
     }
     else if(fbxModel.GetType() == FbxLight::Type())
     {
         LightOmni* o = sceneObject->Get<LightOmni>();
-        o->Color(1.0f, 1.0f, 1.0f);
+        o->Color(
+            ((rand() % 50 + 50) * 0.01f), 
+            ((rand() % 50 + 50) * 0.01f), 
+            ((rand() % 50 + 50) * 0.01f)
+        );
         o->Intensity(1.0f);
     }
 }
 
 void SceneFromFbx(FbxScene& fbxScene, SceneObject* scene){
     for(unsigned i = 0; i < fbxScene.ModelCount(); ++i)
-        SceneFromFbxModel(fbxScene.GetModel(i), fbxScene, scene->CreateObject());
+    {
+        SceneObject* child = scene->CreateObject();
+        scene->Get<Transform>()->Attach(child->Get<Transform>());
+        SceneFromFbxModel(fbxScene.GetModel(i), fbxScene, child);
+    }
 }
 
 bool SceneFromFbx(const char* data, size_t size, SceneObject* scene)
@@ -90,26 +103,19 @@ bool SceneFromFbx(const std::string& filename, SceneObject* scene)
     return true;
 }
 
-class ResTest : public ResourceObject
-{
-public:
-    void Print()
-    {
-        LOG(data);
-    }
-    virtual bool Build(ResourceRaw* raw)
-    {
-        data.resize(raw->Size());
-        raw->ReadAll((char*)data.data());
-        return true;
-    }
-private:
-    std::string data;
-};
-
 SceneObject myScene;
 SceneObject so;
 SceneObject fbx_so;
+
+class Rotator : public Updatable
+{
+    RTTR_ENABLE(Updatable)
+public:
+    void OnUpdate()
+    {
+        Get<Transform>()->Rotate(0.1f * GameState::DeltaTime(), gfxm::vec3(0.0f, 0.0f, 1.0f));
+    }
+};
 
 void Aurora2Init()
 {
@@ -119,6 +125,7 @@ void Aurora2Init()
     DeserializeScene("test.scn", so);
 
     SceneObject* fbx_child = myScene.CreateObject();
+    fbx_child->Get<Rotator>();
     SceneFromFbx("character.fbx", fbx_child);
     SerializeScene(fbx_child, "fbx_so.scn");
 
@@ -132,6 +139,4 @@ void Aurora2Init()
     ref.Get<ResTest>()->Print();
 */
     GameState::GetSceneController().SetScene(&myScene);
-
-    //GameState::SetScene(&myScene);
 }
