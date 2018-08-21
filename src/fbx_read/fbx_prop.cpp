@@ -1,6 +1,7 @@
 #include "fbx_prop.h"
 
 #include <sstream>
+#include <iostream>
 
 void FbxProp::SetType(char t) { type = t; }
 
@@ -13,6 +14,7 @@ void FbxProp::SetData(const std::vector<char>& data){
     this->data = data;
 }
 std::string FbxProp::GetString(){
+    if(type != 'S') return std::string();
     unsigned strLen = 0;
     for(unsigned i = 0; i < data.size(); ++i)
     {
