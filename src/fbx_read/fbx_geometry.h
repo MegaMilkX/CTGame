@@ -85,6 +85,8 @@ public:
         SetName(name);
         const std::string indexNodeName = "PolygonVertexIndex";
         const std::string vertexNodeName = "Vertices";
+        const std::string normalLayerNodeName = "LayerElementNormal";
+        const std::string uvLayerNodeName = "LayerElementUV";
 
         std::vector<int32_t> fbxIndices;
         if(!node.ChildCount(indexNodeName))
@@ -94,8 +96,6 @@ public:
                 .GetProperty(0)
                 .GetArray<int32_t>();
         FbxTriangulate(indices, fbxIndices);
-        std::cout << "fbxIndex count: " << fbxIndices.size() << std::endl;
-        std::cout << "Index count: " << indices.size() << std::endl;
 
         std::vector<double> fbxVertices;
         if(!node.ChildCount(vertexNodeName))
@@ -106,6 +106,40 @@ public:
                 .GetArray<double>();
         vertices.reserve(fbxVertices.size());
         for(auto d : fbxVertices) vertices.emplace_back((float)d);
+
+        for(unsigned i = 0; i < node.ChildCount(normalLayerNodeName); ++i) {
+            FbxNode& fbxLayer = node.GetNode(normalLayerNodeName, i);
+            std::string mapping = 
+                fbxLayer.GetNode("MappingInformationType", 0)
+                    .GetProperty(0)
+                    .GetString();
+            std::string refType = 
+                fbxLayer.GetNode("ReferenceInformationType", 0)
+                    .GetProperty(0)
+                    .GetString();
+            std::vector<double> fbxNormals =
+                fbxLayer.GetNode("Normals", 0)
+                    .GetProperty(0)
+                    .GetArray<double>();
+            
+        }
+
+        for(unsigned i = 0; i < node.ChildCount(uvLayerNodeName); ++i) {
+            FbxNode& fbxLayer = node.GetNode(uvLayerNodeName, i);
+            std::string mapping = 
+                fbxLayer.GetNode("MappingInformationType", 0)
+                    .GetProperty(0)
+                    .GetString();
+            std::string refType =
+                fbxLayer.GetNode("ReferenceInformationType", 0)
+                    .GetProperty(0)
+                    .GetString();
+            std::vector<double> fbxUV = 
+                fbxLayer.GetNode("UV", 0)
+                    .GetProperty(0)
+                    .GetArray<double>();
+            
+        }
 
         return true;
     }
