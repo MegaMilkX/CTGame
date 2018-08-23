@@ -25,7 +25,9 @@ public:
     FbxModel& GetModel(unsigned i);
     FbxModel& GetModelByUid(int64_t uid);
     FbxMesh& GetMesh(int64_t uid);
-    FbxGeometry& GetGeometry(int64_t uid);
+    unsigned GeometryCount() const;
+    FbxGeometry& GetGeometry(unsigned i);
+    FbxGeometry& GetGeometryByUid(int64_t uid);
 
     void _dumpFile(const std::string& filename);
     /* Don't use this */
@@ -46,6 +48,7 @@ private:
     std::map<int64_t, FbxModel> models;
 
     std::map<int64_t, FbxMesh> meshes;
+    std::vector<int64_t> geometryUids;
     std::map<int64_t, FbxGeometry> geometries;
 
     std::vector<FbxConnection> connections;

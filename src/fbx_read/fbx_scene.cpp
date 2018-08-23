@@ -22,7 +22,17 @@ FbxMesh& FbxScene::GetMesh(int64_t uid)
     return meshes[uid];
 }
 
-FbxGeometry& FbxScene::GetGeometry(int64_t uid)
+unsigned FbxScene::GeometryCount() const
+{
+    return geometryUids.size();
+}
+
+FbxGeometry& FbxScene::GetGeometry(unsigned i)
+{
+    return geometries[geometryUids[i]];
+}
+
+FbxGeometry& FbxScene::GetGeometryByUid(int64_t uid)
 {
     return geometries[uid];
 }
@@ -44,7 +54,8 @@ void FbxScene::_finalize()
         FbxNode& node = rootNode.GetNode("Geometry", i);
         int64_t uid = node.GetProperty(0).GetInt64();
         FbxGeometry& geom = geometries[uid];
-        geom.Make(node);
+        geometryUids.emplace_back(uid);
+        geom.Make(node, settings.scaleFactor);
     }
 
     for(unsigned i = 0; i < rootNode.ChildCount("C"); ++i){
