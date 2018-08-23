@@ -24,6 +24,23 @@ bool DeserializeScene(unsigned char* data, size_t size, SceneObject& scene)
             continue;
         }
 
+        std::string z_filename = file_stat.m_filename;
+        const std::string resource_prefix = "resources/";
+        if(z_filename.compare(0, resource_prefix.size(), resource_prefix) == 0)
+        {
+            std::string res_name = z_filename.substr(resource_prefix.size());
+            size_t res_size = (size_t)file_stat.m_uncomp_size;
+            std::vector<char> buf(res_size);
+            mz_zip_reader_extract_file_to_mem(
+                &archive, 
+                z_filename.c_str(), 
+                (void*)buf.data(), 
+                res_size, 0
+            );
+            g_resourceRegistry.Add(res_name, new ResourceRawMemory(buf.data(), buf.size()));
+            continue;
+        }
+
         auto tokens = split(file_stat.m_filename, '/');
 
         std::function<void(const std::string&, SceneObject*&)> current_state;

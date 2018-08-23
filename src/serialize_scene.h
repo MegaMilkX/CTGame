@@ -46,6 +46,10 @@ void ToJson(nlohmann::json& j, gfxm::mat4& value){
     j = nlohmann::json::array();
     ToJsonArray(j, (float*)&value, 16);
 }
+template<>
+void ToJson(nlohmann::json& j, ResourceRef& value){
+    j = value.GetTargetName();
+}
 
 template<typename T>
 bool TrySetJsonMember(nlohmann::json& j, rttr::property p, SceneObject::Component* c)
@@ -84,10 +88,11 @@ void SetJsonMember(nlohmann::json& j, rttr::property p, SceneObject::Component* 
     X(gfxm::mat3)
     X(gfxm::mat4)
     X(std::string)
+    X(ResourceRef)
 #undef X
 }
 
-std::string SerializeComponentToJson(rttr::type t, SceneObject::Component* c)
+std::string SerializeComponentToJson(mz_zip_archive& archive, rttr::type t, SceneObject::Component* c, bool embed_resources)
 {
     using json = nlohmann::json;
 
@@ -98,6 +103,26 @@ std::string SerializeComponentToJson(rttr::type t, SceneObject::Component* c)
     for(auto p : props)
     {
         SetJsonMember(j, p, c);
+        if(embed_resources)
+        {
+            if(p.get_type() == rttr::type::get<ResourceRef>())
+            {
+                rttr::variant var = p.get_value(c);
+                ResourceRef ref = var.get_value<ResourceRef>();
+                ResourceRaw* raw = ref.GetRaw();
+                if(raw && raw->Size() > 0)
+                {
+                    std::vector<char> buf;
+                    buf.resize(raw->Size());
+                    raw->ReadAll((char*)buf.data());
+                    mz_zip_writer_add_mem(
+                        &archive,
+                        ("resources/" + ref.GetTargetName()).c_str(),
+                        buf.data(), buf.size(), 0
+                    );
+                }
+            }
+        }
     }
 
     result = j.dump();
@@ -108,7 +133,8 @@ std::string SerializeComponentToJson(rttr::type t, SceneObject::Component* c)
 bool SerializeScene_(
     const SceneObject* scene, 
     mz_zip_archive& archive,
-    std::string& file_prefix
+    std::string& file_prefix, 
+    bool embed_resources = false
 ){
     int comp_count = scene->ComponentCount();
     for(int i = 0; i < comp_count; ++i)
@@ -125,7 +151,7 @@ bool SerializeScene_(
         if(!type.is_valid()) continue;
 
         std::string data = 
-            SerializeComponentToJson(type, comp);
+            SerializeComponentToJson(archive, type, comp, embed_resources);
 
         if(!mz_zip_writer_add_mem(
             &archive, 
@@ -145,13 +171,13 @@ bool SerializeScene_(
     {
         std::string prefix = 
             file_prefix + "objects/" + scene->GetChild(i)->Name() + "/";
-        SerializeScene_(scene->GetChild(i), archive, prefix);
+        SerializeScene_(scene->GetChild(i), archive, prefix, embed_resources);
     }
 
     return true;
 }
 
-bool SerializeScene(const SceneObject* scene, const std::string& filename)
+bool SerializeScene(const SceneObject* scene, const std::string& filename, bool embed_resources = false)
 {
     mz_zip_archive archive;
     memset(&archive, 0, sizeof(archive));
@@ -163,7 +189,7 @@ bool SerializeScene(const SceneObject* scene, const std::string& filename)
     }
 
     std::string file_prefix;
-    SerializeScene_(scene, archive, file_prefix);
+    SerializeScene_(scene, archive, file_prefix, embed_resources);
 
     mz_zip_writer_finalize_archive(&archive);
     mz_zip_writer_end(&archive);
