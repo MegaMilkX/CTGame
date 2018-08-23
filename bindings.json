@@ -29,6 +29,9 @@
             { "id":"X360_A" },
             { "id":"DS4_CROSS" }
         ],
+        "MouseLookHold":[
+            { "id":"MOUSE_RIGHT" }
+        ],
         "ResetFreeCam":[
             { "id":"KB_Q" }
         ]

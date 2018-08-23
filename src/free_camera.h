@@ -26,6 +26,9 @@ public:
         GameState::GetInput()->BindActionPress("Use", std::bind(&FreeCamera::Use, this));
         GameState::GetInput()->BindActionPress("ResetFreeCam", std::bind(&FreeCamera::ResetTransform, this));
     
+        GameState::GetInput()->BindActionPress("MouseLookHold", std::bind(&FreeCamera::MouseLookPress, this));
+        GameState::GetInput()->BindActionRelease("MouseLookHold", std::bind(&FreeCamera::MouseLookRelease, this));
+
         LightOmni* light = Get<LightOmni>();
         light->Color(1, 1, 1);
         light->Intensity(1);
@@ -42,6 +45,16 @@ public:
         Get<Transform>()->Rotation(gfxm::quat(0.0f, 0.0f, 0.0f, 1.0f));
     }
 
+    bool mouseLookEnabled = false;
+    void MouseLookPress()
+    {
+        mouseLookEnabled = true;        
+    }
+    void MouseLookRelease()
+    {
+        mouseLookEnabled = false;
+    }
+
     void MoveX(float v)
     {
         Get<Transform>()->Translate(v * GameState::DeltaTime() * Get<Transform>()->Right());
@@ -54,11 +67,13 @@ public:
 
     void RotateX(float v)
     {
+        if(!mouseLookEnabled) return;
         Get<Transform>()->Rotate(-v * 0.005f, gfxm::vec3(0.0f,1.0f,0.0f));
     }
 
     void RotateY(float v)
     {
+        if(!mouseLookEnabled) return;
         Get<Transform>()->Rotate(-v * 0.005f, Get<Transform>()->Right());
     }
 
