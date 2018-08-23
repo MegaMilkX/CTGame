@@ -50,16 +50,19 @@ void ResourcesFromFbxScene(FbxScene& fbxScene)
         mz_zip_writer_add_mem(&zip, "IndexCount", (void*)&indexCount, sizeof(indexCount), 0);
         mz_zip_writer_add_mem(&zip, "Indices", (void*)geom.GetIndices().data(), indexCount * sizeof(uint32_t), 0);
         mz_zip_writer_add_mem(&zip, "Vertices", (void*)geom.GetVertices().data(), vertexCount * 3 * sizeof(float), 0);
-        if(geom.UVLayerCount() > 0)
-            mz_zip_writer_add_mem(&zip, "Normals.0", (void*)geom.GetNormals(0).data(), vertexCount * 3 * sizeof(float), 0);
-        if(geom.NormalLayerCount() > 0)
-            mz_zip_writer_add_mem(&zip, "UV.0", (void*)geom.GetUV(0).data(), vertexCount * 2 * sizeof(float), 0);
-
+        for(size_t j = 0; j < geom.NormalLayerCount(); ++j)
+        {
+            mz_zip_writer_add_mem(&zip, MKSTR("Normals." << j).c_str(), (void*)geom.GetNormals(0).data(), vertexCount * 3 * sizeof(float), 0);
+        }
+        for(size_t j = 0; j < geom.UVLayerCount(); ++j)
+        {
+            mz_zip_writer_add_mem(&zip, MKSTR("UV." << j).c_str(), (void*)geom.GetUV(0).data(), vertexCount * 2 * sizeof(float), 0);
+        }
 
         void* bufptr;
         size_t sz;
         mz_zip_writer_finalize_heap_archive(&zip, &bufptr, &sz);
-        // TODO: Copy data, make resource
+
         g_resourceRegistry.Add(
             MKSTR(geom.GetUid() << geom.GetName() << ".geo"), 
             new ResourceRawMemory((char*)bufptr, sz)
@@ -142,36 +145,16 @@ SceneObject myScene;
 SceneObject so;
 SceneObject fbx_so;
 
-class Rotator : public Updatable
-{
-    RTTR_ENABLE(Updatable)
-public:
-    void OnUpdate()
-    {
-        Get<Transform>()->Rotate(0.1f * GameState::DeltaTime(), gfxm::vec3(0.0f, 0.0f, 1.0f));
-    }
-};
-
 void Aurora2Init()
 {
     auto gc = myScene.Get<WorldController>();
 
-    SerializeScene(&myScene, "test.scn");
-    DeserializeScene("test.scn", so);
+    //SerializeScene(&myScene, "test.scn");
+    //DeserializeScene("test.scn", so);
 
-    SceneObject* fbx_child = myScene.CreateObject();
-    //fbx_child->Get<Rotator>();
-    SceneFromFbx("character.fbx", fbx_child);
-    SerializeScene(fbx_child, "fbx_so.scn");
+    //SceneFromFbx("character.fbx", &fbx_so);
+    //SerializeScene(&fbx_so, "fbx_so.scn", true);
+    DeserializeScene("fbx_so.scn", *myScene.CreateObject());
 
-    std::vector<char> buf;
-    MakeGeometryResourceData(buf);
-    std::ofstream f("geometry.geo");
-    f.write(buf.data(), buf.size());
-    f.close();
-/*
-    ResourceRef ref("General.Script.scene");
-    ref.Get<ResTest>()->Print();
-*/
     GameState::GetSceneController().SetScene(&myScene);
 }
