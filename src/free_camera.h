@@ -14,7 +14,6 @@ public:
     {
         c = Get<Camera>();
         c->Get<Transform>()->Translate(0, 1.6f, 4);
-        GetObject()->Root()->Get<Renderer>()->CurrentCamera(c);
 
         c->Perspective(1.0f, 16.0f/9.0f, 0.1f, 100.0f);
 
