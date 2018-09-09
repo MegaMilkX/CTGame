@@ -2,7 +2,6 @@
 #define CHARACTER_H
 
 #include <scene_object.h>
-#include <skeleton.h>
 #include <model.h>
 
 #include "character_camera.h"
