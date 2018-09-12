@@ -1,7 +1,6 @@
 #include <aurora2/aurora2.h>
 #include "world_controller.h"
 
-#include <serialize_scene.h>
 #include <deserialize_scene.h>
 
 
