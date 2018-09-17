@@ -12,8 +12,8 @@ public:
     void OnStart()
     {
         m = Get<Model>();
-        m->mesh.Set("General.Player.Mesh.geo");
-        m->material.Set("General.Material.material2");
+        m->SetMesh("General.Player.Mesh.geo");
+        m->SetMaterial("General.Material.material2");
 
         //cam = GetObject()->Root()->CreateObject()->Get<CharacterCamera>();
         //cam->SetTarget(m->GetObject()->FindObject("Root")->Get<Transform>());

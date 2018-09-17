@@ -1,14 +1,10 @@
 #include <aurora2/aurora2.h>
 #include "world_controller.h"
 
-#include <deserialize_scene.h>
-
-
-
 #include "mesh_buffer.h"
 
 #include <scene_controller.h>
-
+#include <scene_serializer.h>
 #include <external/scene_from_fbx.h>
 
 SceneObject myScene;
@@ -24,7 +20,7 @@ void Aurora2Init()
 
     //SceneFromFbx("character.fbx", &fbx_so);
     //SerializeScene(&fbx_so, "fbx_so.scn", true);
-    DeserializeScene("fbx_so.scn", *myScene.CreateObject());
+    SceneSerializer().Deserialize("fbx_so.scn", *myScene.CreateObject());
 
     GameState::GetSceneController().SetScene(&myScene);
 }
