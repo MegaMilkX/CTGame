@@ -32,7 +32,6 @@ public:
 
         LightDirect* ld = Get<LightDirect>();
         ld->Color(0.2f,0.3f,0.25f);
-        ld->Direction(0, -1, 0);
 
         //chara = CreateObject()->Get<Character>();
 

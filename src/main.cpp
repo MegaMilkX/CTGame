@@ -7,20 +7,20 @@
 #include <scene_serializer.h>
 #include <external/scene_from_fbx.h>
 
-SceneObject myScene;
-SceneObject so;
-SceneObject fbx_so;
+std::shared_ptr<SceneObject> myScene = SceneObject::Create();
+std::shared_ptr<SceneObject> so = SceneObject::Create();
+std::shared_ptr<SceneObject> fbx_so = SceneObject::Create();
 
 void Aurora2Init()
 {
-    auto gc = myScene.Get<WorldController>();
+    auto gc = myScene->Get<WorldController>();
 
     //SerializeScene(&myScene, "test.scn");
     //DeserializeScene("test.scn", so);
 
     //SceneFromFbx("character.fbx", &fbx_so);
     //SerializeScene(&fbx_so, "fbx_so.scn", true);
-    SceneSerializer().Deserialize("fbx_so.scn", *myScene.CreateObject());
+    SceneSerializer().Deserialize("fbx_so.scn", *myScene->CreateObject());
 
-    GameState::GetSceneController().SetScene(&myScene);
+    GameState::GetSceneController().SetScene(myScene.get());
 }
