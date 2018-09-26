@@ -1,13 +1,13 @@
 #ifndef FREE_CAMERA_H
 #define FREE_CAMERA_H
 
-#include <scene_object.h>
+#include <component.h>
 #include <camera.h>
 #include <transform.h>
 #include <game_state.h>
 #include <light_omni.h>
 
-class FreeCamera : public SceneObject::Component
+class FreeCamera : public Component
 {
 public:
     void OnInit()

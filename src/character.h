@@ -1,7 +1,7 @@
 #ifndef CHARACTER_H
 #define CHARACTER_H
 
-#include <scene_object.h>
+#include <component.h>
 #include <model.h>
 
 #include "character_camera.h"

@@ -1,7 +1,7 @@
 #ifndef CHARACTER_CAMERA_H
 #define CHARACTER_CAMERA_H
 
-#include <scene_object.h>
+#include <component.h>
 #include <camera.h>
 #include <transform.h>
 #include <game_state.h>
