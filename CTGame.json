@@ -4,5 +4,6 @@
     "source_path":"src",
     "default_state":"Gameplay",
     "resources":"resources.json",
+	"resource_filter":"*.scn;*.geo;*.anim;*.mat;*.png;*.jpeg;*.jpg;*.ttf",
     "bindings":"bindings.json"
 }
