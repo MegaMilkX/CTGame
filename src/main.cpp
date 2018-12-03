@@ -4,7 +4,7 @@
 #include "mesh_buffer.h"
 
 #include <scene_controller.h>
-#include <scene_serializer.h>
+#include <serialization/scene_serializer.h>
 #include <external/scene_from_fbx.h>
 
 std::shared_ptr<SceneObject> myScene = SceneObject::Create();
