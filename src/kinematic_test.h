@@ -92,10 +92,10 @@ public:
                         Object()->GetController()->GetPhysics().GetBtWorld()->convexSweepTest(&capsule, from, to, callback);
                         //if(callback.hasHit()) {
                             gfxm::vec3 normal = gfxm::normalize(callback.hitNormal);
-                            if(gfxm::dot(delta, normal) > 0.0f) {
-                                normal = -delta;
-                            }
+
+                            normal = normal * (std::abs(gfxm::dot(delta, normal)) + 0.0001f);
                             delta = delta + normal;
+
                             {
                                 const ddVec3 fr  = { 
                                     pos.x, 
