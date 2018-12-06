@@ -2,6 +2,7 @@
 #define KINEMATIC_TEST_H
 
 #include <component.h>
+#include <updatable.h>
 #include <input.h>
 #include <transform.h>
 #include <common.h>
@@ -54,7 +55,7 @@ public:
     gfxm::vec3 hitNormal;
 };
 
-class KinematicTest : public Component {
+class KinematicTest : public Updatable {
     RTTR_ENABLE(Component)
 public:
     virtual void OnInit() {
@@ -91,7 +92,10 @@ public:
                         Object()->GetController()->GetPhysics().GetBtWorld()->convexSweepTest(&capsule, from, to, callback);
                         //if(callback.hasHit()) {
                             gfxm::vec3 normal = gfxm::normalize(callback.hitNormal);
-                            delta = gfxm::normalize(delta + normal);
+                            if(gfxm::dot(delta, normal) > 0.0f) {
+                                normal = -delta;
+                            }
+                            delta = delta + normal;
                             {
                                 const ddVec3 fr  = { 
                                     pos.x, 
@@ -138,6 +142,10 @@ public:
                 t->Translate(forward * v * Common.frameDelta * 2.5f);
             }
         );
+    }
+
+    virtual void OnUpdate() {
+        
     }
 private:
     Transform* t;
