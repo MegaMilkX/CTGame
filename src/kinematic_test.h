@@ -23,7 +23,7 @@ public:
         }
 
         if(convexResult.m_localShapeInfo) {
-            std::cout << "Tri index: " << convexResult.m_localShapeInfo->m_triangleIndex << std::endl;
+            //std::cout << "Tri index: " << convexResult.m_localShapeInfo->m_triangleIndex << std::endl;
             
         }
 
@@ -47,7 +47,7 @@ public:
             convexResult.m_hitNormalLocal.getX(),
             convexResult.m_hitNormalLocal.getY(),
             convexResult.m_hitNormalLocal.getZ()
-        ));
+        ) * convexResult.m_hitFraction);
         return convexResult.m_hitFraction;
     }
 
@@ -91,7 +91,7 @@ public:
                         Object()->GetController()->GetPhysics().GetBtWorld()->convexSweepTest(&capsule, from, to, callback);
                         //if(callback.hasHit()) {
                             gfxm::vec3 normal = gfxm::normalize(callback.hitNormal);
-                            delta = gfxm::normalize(normal - delta);
+                            delta = gfxm::normalize(delta + normal);
                             {
                                 const ddVec3 fr  = { 
                                     pos.x, 
