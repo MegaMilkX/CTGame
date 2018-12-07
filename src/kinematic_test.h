@@ -14,8 +14,8 @@
 
 class CollisionCallback : public btCollisionWorld::ConvexResultCallback {
 public:
-    CollisionCallback(gfxm::vec3 delta)
-    : delta(delta) {
+    CollisionCallback(gfxm::vec3 delta, gfxm::vec3 initial_translation)
+    : delta(delta), initial_translation(initial_translation) {
         
     }
 
@@ -39,9 +39,12 @@ public:
             convexResult.m_hitPointLocal.getZ() 
         };
         const ddVec3 t = { 
-            convexResult.m_hitPointLocal.getX() + convexResult.m_hitNormalLocal.getX() * convexResult.m_hitFraction, 
-            convexResult.m_hitPointLocal.getY() + convexResult.m_hitNormalLocal.getY() * convexResult.m_hitFraction, 
-            convexResult.m_hitPointLocal.getZ() + convexResult.m_hitNormalLocal.getZ() * convexResult.m_hitFraction
+            initial_translation.x,
+            initial_translation.y,
+            initial_translation.z
+            //convexResult.m_hitPointLocal.getX() + convexResult.m_hitNormalLocal.getX() * convexResult.m_hitFraction, 
+            //convexResult.m_hitPointLocal.getY() + convexResult.m_hitNormalLocal.getY() * convexResult.m_hitFraction, 
+            //convexResult.m_hitPointLocal.getZ() + convexResult.m_hitNormalLocal.getZ() * convexResult.m_hitFraction
         };
         const ddVec3 col = { 1.0f, 0.0f, 0.5f };
         if(normalInWorldSpace)
@@ -50,9 +53,9 @@ public:
         }
         
         gfxm::vec3 normal(
-            convexResult.m_hitNormalLocal.getX(),
-            convexResult.m_hitNormalLocal.getY(),
-            convexResult.m_hitNormalLocal.getZ()
+            initial_translation.x - convexResult.m_hitPointLocal.getX(),
+            0.0f,
+            initial_translation.z - convexResult.m_hitPointLocal.getZ()
         );
         float dot = (std::abs(gfxm::dot(delta, normal)) + 0.0001f);
 
@@ -63,6 +66,7 @@ public:
     gfxm::vec3 hitNormal;
 private:
     gfxm::vec3 delta;
+    gfxm::vec3 initial_translation;
 };
 
 class KinematicTest : public Updatable {
@@ -95,10 +99,11 @@ public:
                         
                         btTransform to;
                         to.setRotation(btQuaternion(rot.x,rot.y,rot.z,rot.w));
+                        gfxm::vec3 initial_pos = pos;
                         pos = pos + delta;
                         to.setOrigin(btVector3(pos.x,pos.y,pos.z));
 
-                        CollisionCallback callback(delta);
+                        CollisionCallback callback(delta, initial_pos);
                         Object()->GetController()->GetPhysics().GetBtWorld()->convexSweepTest(&capsule, from, to, callback);
                         //if(callback.hasHit()) {
                             gfxm::vec3 normal = gfxm::normalize(callback.hitNormal);
