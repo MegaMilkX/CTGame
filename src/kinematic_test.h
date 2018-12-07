@@ -14,6 +14,11 @@
 
 class CollisionCallback : public btCollisionWorld::ConvexResultCallback {
 public:
+    CollisionCallback(gfxm::vec3 delta)
+    : delta(delta) {
+        
+    }
+
     virtual bool needsCollision(btBroadphaseProxy *proxy0) const {
         return true;
     }
@@ -34,25 +39,30 @@ public:
             convexResult.m_hitPointLocal.getZ() 
         };
         const ddVec3 t = { 
-            convexResult.m_hitPointLocal.getX() + convexResult.m_hitNormalLocal.getX(), 
-            convexResult.m_hitPointLocal.getY() + convexResult.m_hitNormalLocal.getY(), 
-            convexResult.m_hitPointLocal.getZ() + convexResult.m_hitNormalLocal.getZ() 
+            convexResult.m_hitPointLocal.getX() + convexResult.m_hitNormalLocal.getX() * convexResult.m_hitFraction, 
+            convexResult.m_hitPointLocal.getY() + convexResult.m_hitNormalLocal.getY() * convexResult.m_hitFraction, 
+            convexResult.m_hitPointLocal.getZ() + convexResult.m_hitNormalLocal.getZ() * convexResult.m_hitFraction
         };
         const ddVec3 col = { 1.0f, 0.0f, 0.5f };
         if(normalInWorldSpace)
         {
             dd::line(f, t, col, 0, false);
         }
-        dd::point(f, col);
-        hitNormal = gfxm::normalize(hitNormal + gfxm::vec3(
+        
+        gfxm::vec3 normal(
             convexResult.m_hitNormalLocal.getX(),
             convexResult.m_hitNormalLocal.getY(),
             convexResult.m_hitNormalLocal.getZ()
-        ) * convexResult.m_hitFraction);
+        );
+        float dot = (std::abs(gfxm::dot(delta, normal)) + 0.0001f);
+
+        hitNormal = gfxm::normalize(hitNormal + normal * dot);
         return convexResult.m_hitFraction;
     }
 
     gfxm::vec3 hitNormal;
+private:
+    gfxm::vec3 delta;
 };
 
 class KinematicTest : public Updatable {
@@ -88,7 +98,7 @@ public:
                         pos = pos + delta;
                         to.setOrigin(btVector3(pos.x,pos.y,pos.z));
 
-                        CollisionCallback callback;
+                        CollisionCallback callback(delta);
                         Object()->GetController()->GetPhysics().GetBtWorld()->convexSweepTest(&capsule, from, to, callback);
                         //if(callback.hasHit()) {
                             gfxm::vec3 normal = gfxm::normalize(callback.hitNormal);
