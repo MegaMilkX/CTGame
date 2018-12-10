@@ -15,7 +15,8 @@
 class CollisionCallback : public btCollisionWorld::ConvexResultCallback {
 public:
     CollisionCallback(gfxm::vec3 delta, gfxm::vec3 initial_translation)
-    : delta(delta), initial_translation(initial_translation) {
+    : delta(delta), initial_translation(initial_translation),
+    closestResult(0, 0, btVector3(0,0,0), btVector3(0,0,0), btScalar(1.0f)) {
         
     }
 
@@ -28,11 +29,17 @@ public:
             return 0.0f;
         }
 
-        if(convexResult.m_localShapeInfo) {
-            //std::cout << "Tri index: " << convexResult.m_localShapeInfo->m_triangleIndex << std::endl;
-            
-        }
+        if(convexResult.m_hitFraction < closestResult.m_hitFraction) {
+            closestResult = convexResult;
+            hitNormal = gfxm::vec3(
+                closestResult.m_hitNormalLocal.getX(),
+                closestResult.m_hitNormalLocal.getY(),
+                closestResult.m_hitNormalLocal.getZ()
+            );
+            return 0.0f;
+        }        
 
+        /*
         const ddVec3 f  = { 
             convexResult.m_hitPointLocal.getX(), 
             convexResult.m_hitPointLocal.getY(), 
@@ -60,17 +67,20 @@ public:
         float dot = (std::abs(gfxm::dot(delta, normal)) + 0.0001f);
 
         hitNormal = gfxm::normalize(hitNormal + normal * dot);
+        */
         return convexResult.m_hitFraction;
     }
 
     gfxm::vec3 hitNormal;
+
+    btCollisionWorld::LocalConvexResult closestResult;
 private:
     gfxm::vec3 delta;
     gfxm::vec3 initial_translation;
 };
 
 class KinematicTest : public Updatable {
-    RTTR_ENABLE(Component)
+    RTTR_ENABLE(Updatable)
 public:
     virtual void OnInit() {
         t = Get<Transform>();
